@@ -1,27 +1,41 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../data/repositories/keyword_repository.dart';
 import '../../data/models/keyword_dto.dart';
-import 'providers.dart';
+import '../../data/local/database/app_database.dart';
 
-final keywordsProvider = FutureProvider<List<KeywordDTO>>((ref) async {
-  final keywordRepo = ref.watch(keywordRepositoryProvider);
-  return keywordRepo.getAllKeywords();
+final keywordRepositoryProvider = Provider((ref) {
+  final database = ref.watch(databaseProvider);
+  return KeywordRepository(database);
 });
 
-final keywordCountProvider = FutureProvider<int>((ref) async {
-  final keywords = await ref.watch(keywordsProvider.future);
-  return keywords.length;
+final keywordsProvider = FutureProvider((ref) async {
+  final repo = ref.watch(keywordRepositoryProvider);
+  return repo.getAllKeywords();
+});
+
+final defaultKeywordsProvider = FutureProvider((ref) async {
+  final repo = ref.watch(keywordRepositoryProvider);
+  return repo.getDefaultKeywords();
 });
 
 final addKeywordProvider = FutureProvider.family<void, String>((ref, keyword) async {
-  final keywordRepo = ref.watch(keywordRepositoryProvider);
-  await keywordRepo.addKeyword(keyword);
+  final repo = ref.watch(keywordRepositoryProvider);
+  final newKeyword = KeywordDTO(
+    id: DateTime.now().millisecondsSinceEpoch.toString(),
+    keyword: keyword,
+    isDefault: false,
+    createdAt: DateTime.now(),
+  );
+  await repo.createKeyword(newKeyword);
   ref.invalidate(keywordsProvider);
-  ref.invalidate(keywordCountProvider);
 });
 
-final deleteKeywordProvider = FutureProvider.family<void, String>((ref, id) async {
-  final keywordRepo = ref.watch(keywordRepositoryProvider);
-  await keywordRepo.deleteKeyword(id);
+final removeKeywordProvider = FutureProvider.family<void, String>((ref, keywordId) async {
+  final repo = ref.watch(keywordRepositoryProvider);
+  await repo.deleteKeyword(keywordId);
   ref.invalidate(keywordsProvider);
-  ref.invalidate(keywordCountProvider);
+});
+
+final databaseProvider = Provider<AppDatabase>((ref) {
+  return AppDatabase();
 });

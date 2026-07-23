@@ -1,44 +1,60 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'providers.dart';
 
-final isTelegramConnectedProvider = StateProvider<bool>((ref) => false);
-
-final isMonitoringProvider = StateProvider<bool>((ref) => false);
-
-final lastSyncProvider = StateProvider<DateTime?>((ref) => null);
-
-final telegramLoginProvider = FutureProvider.family<bool, String>((ref, phoneNumber) async {
-  final telegramService = ref.watch(telegramServiceProvider);
-  final result = await telegramService.login(phoneNumber);
-  if (result) {
-    ref.read(isTelegramConnectedProvider.notifier).state = true;
-  }
-  return result;
+// Telegram authentication state
+final telegramAuthProvider = StateProvider<TelegramAuthState>((ref) {
+  return TelegramAuthState.initial();
 });
 
-final telegramLogoutProvider = FutureProvider<bool>((ref) async {
-  final telegramService = ref.watch(telegramServiceProvider);
-  await telegramService.logout();
-  ref.read(isTelegramConnectedProvider.notifier).state = false;
-  ref.read(isMonitoringProvider.notifier).state = false;
+final telegramLoginProvider = FutureProvider.family<bool, String>((ref, phoneNumber) async {
+  // TODO: Implement actual Telegram TDLib login
+  // This will be implemented when TDLib wrapper is created
+  await Future.delayed(const Duration(seconds: 2));
   return true;
 });
 
-final startMonitoringProvider = FutureProvider.family<bool, List<int>>((ref, chatIds) async {
-  final telegramService = ref.watch(telegramServiceProvider);
-  final result = await telegramService.startMonitoring(chatIds);
-  if (result) {
-    ref.read(isMonitoringProvider.notifier).state = true;
-    ref.read(lastSyncProvider.notifier).state = DateTime.now();
-  }
-  return result;
+final verifyCodeProvider = FutureProvider.family<bool, String>((ref, code) async {
+  // TODO: Implement actual code verification
+  await Future.delayed(const Duration(seconds: 1));
+  return true;
 });
 
-final stopMonitoringProvider = FutureProvider<bool>((ref) async {
-  final telegramService = ref.watch(telegramServiceProvider);
-  final result = await telegramService.stopMonitoring();
-  if (result) {
-    ref.read(isMonitoringProvider.notifier).state = false;
-  }
-  return result;
+final verifyPasswordProvider = FutureProvider.family<bool, String>((ref, password) async {
+  // TODO: Implement actual password verification
+  await Future.delayed(const Duration(seconds: 1));
+  return true;
 });
+
+class TelegramAuthState {
+  final bool isAuthenticated;
+  final String? phoneNumber;
+  final String? error;
+  final bool isLoading;
+
+  TelegramAuthState({
+    required this.isAuthenticated,
+    this.phoneNumber,
+    this.error,
+    required this.isLoading,
+  });
+
+  factory TelegramAuthState.initial() {
+    return TelegramAuthState(
+      isAuthenticated: false,
+      isLoading: false,
+    );
+  }
+
+  TelegramAuthState copyWith({
+    bool? isAuthenticated,
+    String? phoneNumber,
+    String? error,
+    bool? isLoading,
+  }) {
+    return TelegramAuthState(
+      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      error: error ?? this.error,
+      isLoading: isLoading ?? this.isLoading,
+    );
+  }
+}

@@ -1,34 +1,44 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../data/repositories/settings_repository.dart';
 import '../../data/models/settings_dto.dart';
-import 'providers.dart';
+import '../../data/local/database/app_database.dart';
 
-final settingsProvider = FutureProvider<SettingsDTO>((ref) async {
-  final settingsRepo = ref.watch(settingsRepositoryProvider);
-  return settingsRepo.getSettings();
+final settingsRepositoryProvider = Provider((ref) {
+  final database = ref.watch(databaseProvider);
+  return SettingsRepository(database);
+});
+
+final settingsProvider = FutureProvider((ref) async {
+  final repo = ref.watch(settingsRepositoryProvider);
+  return repo.getSettings();
 });
 
 final darkModeProvider = StateProvider<bool>((ref) {
-  ref.listen(settingsProvider, (previous, next) {
-    next.whenData((settings) {
-      ref.state = settings.isDarkMode;
-    });
-  });
   return false;
 });
 
 final languageProvider = StateProvider<String>((ref) {
-  ref.listen(settingsProvider, (previous, next) {
-    next.whenData((settings) {
-      ref.state = settings.languageCode;
-    });
-  });
   return 'en';
 });
 
+final notificationsEnabledProvider = StateProvider<bool>((ref) {
+  return true;
+});
+
+final backgroundMonitoringProvider = StateProvider<bool>((ref) {
+  return true;
+});
+
+final syncIntervalProvider = StateProvider<int>((ref) {
+  return 15;
+});
+
 final updateSettingsProvider = FutureProvider.family<void, SettingsDTO>((ref, settings) async {
-  final settingsRepo = ref.watch(settingsRepositoryProvider);
-  await settingsRepo.updateSettings(settings);
+  final repo = ref.watch(settingsRepositoryProvider);
+  await repo.saveSettings(settings);
   ref.invalidate(settingsProvider);
-  ref.invalidate(darkModeProvider);
-  ref.invalidate(languageProvider);
+});
+
+final databaseProvider = Provider<AppDatabase>((ref) {
+  return AppDatabase();
 });
