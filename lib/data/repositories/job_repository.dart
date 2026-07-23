@@ -1,78 +1,97 @@
-import '../../local/database/app_database.dart';
 import '../../models/job_dto.dart';
+import '../database/app_database.dart';
+import 'package:drift/drift.dart' as drift;
 
 class JobRepository {
   final AppDatabase _database;
 
   JobRepository(this._database);
 
-  Future<void> saveJob(JobDTO job) async {
-    await _database.insertOrUpdateJob(
-      JobEntityCompanion.insert(
-        id: job.id,
-        company: job.company,
-        title: job.title,
-        location: job.location,
-        date: job.date,
-        source: job.source,
-        message: job.message,
-        importanceScore: job.importanceScore,
-        classification: job.classification,
-        isFavorite: job.isFavorite,
-        createdAt: DateTime.now(),
+  Future<List<JobDTO>> getAllJobs() async {
+    final jobs = await _database.getAllJobs();
+    return jobs.map(_mapToDTO).toList();
+  }
+
+  Future<List<JobDTO>> getJobsByClassification(String classification) async {
+    final jobs = await _database.getJobsByClassification(classification);
+    return jobs.map(_mapToDTO).toList();
+  }
+
+  Future<List<JobDTO>> getFavoriteJobs() async {
+    final jobs = await _database.getFavoriteJobs();
+    return jobs.map(_mapToDTO).toList();
+  }
+
+  Future<List<JobDTO>> getRecentJobs(int days) async {
+    final jobs = await _database.getRecentJobs(days);
+    return jobs.map(_mapToDTO).toList();
+  }
+
+  Future<JobDTO?> getJobById(String id) async {
+    final jobs = await _database.getAllJobs();
+    final job = jobs.firstWhere((j) => j.id == id, orElse: () => null as dynamic);
+    return job != null ? _mapToDTO(job) : null;
+  }
+
+  Future<void> createJob(JobDTO job) async {
+    await _database.insertJob(
+      JobsTableCompanion(
+        id: drift.Value(job.id),
+        title: drift.Value(job.title),
+        company: drift.Value(job.company),
+        location: drift.Value(job.location),
+        date: drift.Value(job.date),
+        description: drift.Value(job.description),
+        classification: drift.Value(job.classification),
+        importanceScore: drift.Value(job.importanceScore),
+        source: drift.Value(job.source),
+        matchedKeywords: drift.Value(job.matchedKeywords.join(',')),
+        isFavorite: drift.Value(job.isFavorite),
+        isSeen: drift.Value(job.isSeen),
       ),
     );
   }
 
-  Future<void> saveJobs(List<JobDTO> jobs) async {
-    final companions = jobs.map((job) => JobEntityCompanion.insert(
+  Future<void> updateJob(JobDTO job) async {
+    await _database.updateJob(
+      JobsTableCompanion(
+        id: drift.Value(job.id),
+        title: drift.Value(job.title),
+        company: drift.Value(job.company),
+        location: drift.Value(job.location),
+        date: drift.Value(job.date),
+        description: drift.Value(job.description),
+        classification: drift.Value(job.classification),
+        importanceScore: drift.Value(job.importanceScore),
+        source: drift.Value(job.source),
+        matchedKeywords: drift.Value(job.matchedKeywords.join(',')),
+        isFavorite: drift.Value(job.isFavorite),
+        isSeen: drift.Value(job.isSeen),
+      ),
+    );
+  }
+
+  Future<void> deleteJob(String id) => _database.deleteJob(id);
+
+  Future<void> toggleFavorite(String id, bool favorite) =>
+      _database.toggleFavorite(id, favorite);
+
+  JobDTO _mapToDTO(JobsTableData job) {
+    return JobDTO(
       id: job.id,
-      company: job.company,
       title: job.title,
+      company: job.company,
       location: job.location,
       date: job.date,
-      source: job.source,
-      message: job.message,
-      importanceScore: job.importanceScore,
+      description: job.description,
       classification: job.classification,
+      importanceScore: job.importanceScore,
+      source: job.source,
+      matchedKeywords: job.matchedKeywords.isNotEmpty
+          ? job.matchedKeywords.split(',')
+          : [],
       isFavorite: job.isFavorite,
-      createdAt: DateTime.now(),
-    )).toList();
-
-    await _database.insertOrUpdateJobs(companions);
-  }
-
-  Future<List<JobDTO>> getAllJobs() async {
-    final entities = await _database.getAllJobs();
-    return entities.map((e) => JobDTO.fromEntity(e)).toList();
-  }
-
-  Future<List<JobDTO>> getJobsByClassification(String classification) async {
-    final entities = await _database.getJobsByClassification(classification);
-    return entities.map((e) => JobDTO.fromEntity(e)).toList();
-  }
-
-  Future<List<JobDTO>> searchJobs(String query) async {
-    final entities = await _database.searchJobs(query);
-    return entities.map((e) => JobDTO.fromEntity(e)).toList();
-  }
-
-  Future<List<JobDTO>> getTodayJobs() async {
-    final now = DateTime.now();
-    final allJobs = await getAllJobs();
-    return allJobs
-        .where((job) =>
-            job.date.year == now.year &&
-            job.date.month == now.month &&
-            job.date.day == now.day)
-        .toList();
-  }
-
-  Future<List<JobDTO>> getRelevantJobs() async {
-    final veryRelevant =
-        await getJobsByClassification('Very Relevant');
-    final relevant =
-        await getJobsByClassification('Relevant');
-    return [...veryRelevant, ...relevant];
+      isSeen: job.isSeen,
+    );
   }
 }
