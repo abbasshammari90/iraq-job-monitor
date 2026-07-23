@@ -1,5 +1,3 @@
-import '../local/database/app_database.dart';
-
 class KeywordDTO {
   final String id;
   final String keyword;
@@ -13,12 +11,35 @@ class KeywordDTO {
     required this.createdAt,
   });
 
-  factory KeywordDTO.fromEntity(KeywordEntity entity) {
+  KeywordDTO copyWith({
+    String? id,
+    String? keyword,
+    bool? isDefault,
+    DateTime? createdAt,
+  }) {
     return KeywordDTO(
-      id: entity.id,
-      keyword: entity.keyword,
-      isDefault: entity.isDefault,
-      createdAt: entity.createdAt,
+      id: id ?? this.id,
+      keyword: keyword ?? this.keyword,
+      isDefault: isDefault ?? this.isDefault,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'keyword': keyword,
+      'isDefault': isDefault,
+      'createdAt': createdAt.toIso8601String(),
+    };
+  }
+
+  factory KeywordDTO.fromJson(Map<String, dynamic> json) {
+    return KeywordDTO(
+      id: json['id'] ?? '',
+      keyword: json['keyword'] ?? '',
+      isDefault: json['isDefault'] ?? false,
+      createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
     );
   }
 }
