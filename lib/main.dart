@@ -6,7 +6,7 @@ import 'data/local/database/app_database.dart';
 
 final logger = Logger();
 
-future void main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize database
