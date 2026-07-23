@@ -1,0 +1,77 @@
+name: iraq_job_monitor
+description: "An Android application that automatically monitors Telegram groups and channels for job opportunities in Iraq."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.0.0
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State Management
+  riverpod: ^2.4.8
+  flutter_riverpod: ^2.4.8
+  riverpod_annotation: ^2.3.1
+
+  # Database
+  drift: ^2.14.0
+  sqlite3_flutter_libs: ^0.5.24
+  path_provider: ^2.1.1
+  path: ^1.8.3
+
+  # Telegram
+  tdlib: ^1.9.0
+
+  # Background Jobs
+  workmanager: ^0.5.1
+
+  # Notifications
+  flutter_local_notifications: ^16.2.0
+
+  # HTTP & Networking
+  dio: ^5.3.1
+
+  # Serialization
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.8.1
+
+  # UI & Design
+  google_fonts: ^6.1.0
+  intl: ^0.19.0
+
+  # Utilities
+  uuid: ^4.0.0
+  logging: ^1.2.0
+  shared_preferences: ^2.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  build_runner: ^2.4.6
+  freezed: ^2.4.1
+  json_serializable: ^6.7.1
+  drift_dev: ^2.14.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/strings/
+    - assets/images/
+
+  fonts:
+    - family: GoogleSans
+      fonts:
+        - asset: assets/fonts/GoogleSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/GoogleSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/GoogleSans-Bold.ttf
+          weight: 700
